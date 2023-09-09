@@ -11,6 +11,31 @@ const User = require('./db/model/user')
 app.use(express.json())
 
 // routes
+app.get('/login', async (req, res) => {
+    let { username, password } = req.body
+
+    try {
+        const user = await User.findOne({ username })
+        if (!user) {
+            res.status(404).json({
+                error: 'Username not found. Please try another username'
+            })
+        }
+
+        const result = await bcrypt.compare(password, user.password)
+        if (!result) {
+            res.status(401).json({
+                error: 'Incorrect password. Please try another password'
+            })
+        }
+
+        res.send('successfully logged in')
+    } catch (err) {
+        console.log('error during login')
+        res.status(500).send()
+    }
+})
+
 app.post('/signup', async (req, res) => {
     let { name, username, password } = req.body
 
@@ -32,7 +57,7 @@ app.post('/signup', async (req, res) => {
     }
 })
 
-// connect to mongodb then start server
+// connect to mongodb then start the server
 connectDB(() => app.listen(PORT, () => console.log(`listening on port ${PORT}`)))
 
 
