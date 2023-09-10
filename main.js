@@ -52,6 +52,11 @@ app.post('/login', async (req, res) => {
     }
 })
 
+app.get('/logout', async (req, res) => {
+    req.session.userId = ''
+    res.status(200).send()
+})
+
 app.post('/signup', async (req, res) => {
     let { name, username, password } = req.body
 
