@@ -1,6 +1,9 @@
+require('dotenv').config()
+
 const express = require('express')
 const app = express()
 const cors = require('cors')
+const session = require('express-session')
 const PORT = 3000
 
 const connectDB = require('./db/connect')
@@ -11,6 +14,11 @@ const User = require('./db/model/user')
 // middlewares
 app.use(express.json())
 app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true
+}))
 
 // routes
 app.post('/login', async (req, res) => {
@@ -31,7 +39,13 @@ app.post('/login', async (req, res) => {
             })
         }
 
-        res.status(200).send()
+        // TODO: set up session cookie
+        // req.session.userId = user._id.toString()
+        res.status(200).json({
+            name: user.name,
+            username: user.username,
+            created: user.created.toString()
+        })
     } catch (err) {
         console.log('error during login')
         res.status(500).send()
