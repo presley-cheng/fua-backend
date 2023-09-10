@@ -69,9 +69,16 @@ app.post('/signup', async (req, res) => {
         }
 
         password = await bcrypt.hash(password, 10)
-        const newUser = new User({ name, username, password })
-        await newUser.save()
-        res.status(200).send()
+        let newUser = new User({ name, username, password })
+        newUser = await newUser.save()
+
+        // TODO: set session cookie
+        // req.session.userId = user._id.toString()
+        res.status(200).json({
+            name: newUser.name,
+            username: newUser.username,
+            created: newUser.created.toString()
+        })
     } catch (err) {
         console.error('error during signup:', err)
         res.status(500).send()
