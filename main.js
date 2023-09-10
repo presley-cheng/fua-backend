@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+const cors = require('cors')
 const PORT = 3000
 
 const connectDB = require('./db/connect')
@@ -9,9 +10,10 @@ const User = require('./db/model/user')
 
 // middlewares
 app.use(express.json())
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
 
 // routes
-app.get('/login', async (req, res) => {
+app.post('/login', async (req, res) => {
     let { username, password } = req.body
 
     try {
@@ -29,7 +31,7 @@ app.get('/login', async (req, res) => {
             })
         }
 
-        res.send('successfully logged in')
+        res.status(200).send()
     } catch (err) {
         console.log('error during login')
         res.status(500).send()
@@ -55,6 +57,10 @@ app.post('/signup', async (req, res) => {
         console.error('error during signup:', err)
         res.status(500).send()
     }
+})
+
+app.get('/dashboard', async (req, res) => {
+    res.status(200).send()
 })
 
 // connect to mongodb then start the server
