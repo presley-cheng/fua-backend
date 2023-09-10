@@ -12,4 +12,17 @@ function connectDB(startServer) {
         .catch(err => console.error('error connecting to mongodb:', err))
 }
 
-module.exports = connectDB
+function getObjectId(str) {
+    try {
+        const objectId = (new mongoose.Types.ObjectId(str))
+        return objectId
+    } catch (err) {
+        console.error(err)
+        return null
+    }
+}
+
+module.exports = {
+    connectDB,
+    getObjectId
+}

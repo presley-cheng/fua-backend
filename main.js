@@ -6,7 +6,7 @@ const cors = require('cors')
 const session = require('express-session')
 const PORT = 3000
 
-const connectDB = require('./db/connect')
+const { connectDB, getObjectId } = require('./db/connect')
 const bcrypt = require('bcrypt')
 
 const User = require('./db/model/user')
@@ -17,7 +17,7 @@ app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: false
 }))
 
 // routes
@@ -27,34 +27,35 @@ app.post('/login', async (req, res) => {
     try {
         const user = await User.findOne({ username })
         if (!user) {
-            res.status(404).json({
+            return res.status(404).json({
                 error: 'Username not found. Please try another username'
             })
         }
 
         const result = await bcrypt.compare(password, user.password)
         if (!result) {
-            res.status(401).json({
+            return res.status(401).json({
                 error: 'Incorrect password. Please try another password'
             })
         }
 
-        // TODO: set up session cookie
-        // req.session.userId = user._id.toString()
-        res.status(200).json({
-            name: user.name,
-            username: user.username,
-            created: user.created.toString()
-        })
+        req.session.userId = user._id.toString()
+        return res.status(200).send()
     } catch (err) {
-        console.log('error during login')
-        res.status(500).send()
+        console.error('error during login')
+        return res.status(500).send()
     }
 })
 
 app.get('/logout', async (req, res) => {
-    req.session.userId = ''
-    res.status(200).send()
+    req.session.destroy(err => {
+        if (err) {
+            console.error('error during logout:', err)
+            return res.status(500).send()
+        }
+
+        return res.status(200).send()
+    })
 })
 
 app.post('/signup', async (req, res) => {
@@ -63,7 +64,7 @@ app.post('/signup', async (req, res) => {
     try {
         const user = await User.findOne({ username })
         if (user) {
-            res.status(409).json({
+            return res.status(409).json({
                 error: 'Username already exists. Please choose a different username'
             })
         }
@@ -72,22 +73,30 @@ app.post('/signup', async (req, res) => {
         let newUser = new User({ name, username, password })
         newUser = await newUser.save()
 
-        // TODO: set session cookie
-        // req.session.userId = user._id.toString()
-        res.status(200).json({
-            name: newUser.name,
-            username: newUser.username,
-            created: newUser.created.toString()
-        })
+        req.session.userId = newUser._id.toString()
+        return res.status(200).send()
     } catch (err) {
         console.error('error during signup:', err)
-        res.status(500).send()
+        return res.status(500).send()
     }
 })
 
 app.get('/dashboard', async (req, res) => {
-    res.status(200).send()
+    const user = await User.findOne({ _id: getObjectId(req.session.userId) })
+    if (!user) {
+        return res.status(401).json({
+            error: 'Unauthorized access. Unable to find user'
+        })
+    }
+
+    return res.status(200).json({
+        name: user.name,
+        username: user.username,
+        created: user.created.toString()
+    })
 })
+
+// TODO: create other dashboard endpoints for component specific data (e.g. calendar, patient info, notes)
 
 // connect to mongodb then start the server
 connectDB(() => app.listen(PORT, () => console.log(`listening on port ${PORT}`)))
