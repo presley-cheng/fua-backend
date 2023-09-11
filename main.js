@@ -28,14 +28,14 @@ app.post('/login', async (req, res) => {
         const user = await User.findOne({ username })
         if (!user) {
             return res.status(404).json({
-                error: 'Username not found. Please try another username'
+                error: 'Username not found. Please try another username.'
             })
         }
 
         const result = await bcrypt.compare(password, user.password)
         if (!result) {
             return res.status(401).json({
-                error: 'Incorrect password. Please try another password'
+                error: 'Incorrect password. Please try another password.'
             })
         }
 
@@ -65,7 +65,7 @@ app.post('/signup', async (req, res) => {
         const user = await User.findOne({ username })
         if (user) {
             return res.status(409).json({
-                error: 'Username already exists. Please choose a different username'
+                error: 'Username already exists. Please choose a different username.'
             })
         }
 
@@ -85,7 +85,7 @@ app.get('/dashboard', async (req, res) => {
     const user = await User.findOne({ _id: getObjectId(req.session.userId) })
     if (!user) {
         return res.status(401).json({
-            error: 'Unauthorized access. Unable to find user'
+            error: 'Please sign in before proceeding.'
         })
     }
 
