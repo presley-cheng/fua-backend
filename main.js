@@ -1,5 +1,4 @@
 require('dotenv').config()
-
 const express = require('express')
 const app = express()
 const cors = require('cors')
@@ -8,8 +7,9 @@ const PORT = 3000
 
 const { connectDB, getObjectId } = require('./db/connect')
 const bcrypt = require('bcrypt')
-
 const User = require('./db/model/user')
+
+const authenticate = require('./auth')
 
 // middlewares
 app.use(express.json())
@@ -81,14 +81,23 @@ app.post('/signup', async (req, res) => {
     }
 })
 
-app.get('/dashboard', async (req, res) => {
-    const user = await User.findOne({ _id: getObjectId(req.session.userId) })
-    if (!user) {
-        return res.status(401).json({
-            error: 'Please sign in before proceeding.'
-        })
-    }
+app.get('/calendar', authenticate, async (req, res) => {
+    return res.status(200).json({
+        name: user.name,
+        username: user.username,
+        created: user.created.toString()
+    })
+})
 
+app.get('/notes', authenticate, async (req, res) => {
+    return res.status(200).json({
+        name: user.name,
+        username: user.username,
+        created: user.created.toString()
+    })
+})
+
+app.get('/patients', authenticate, async (req, res) => {
     return res.status(200).json({
         name: user.name,
         username: user.username,
