@@ -40,7 +40,11 @@ app.post('/login', async (req, res) => {
         }
 
         req.session.userId = user._id.toString()
-        return res.status(200).send()
+        return res.status(200).json({
+            name: user.name,
+            username: user.username,
+            created: user.created.toString()
+        })
     } catch (err) {
         console.error('error during login')
         return res.status(500).send()
@@ -74,11 +78,28 @@ app.post('/signup', async (req, res) => {
         newUser = await newUser.save()
 
         req.session.userId = newUser._id.toString()
-        return res.status(200).send()
+        return res.status(200).json({
+            name: user.name,
+            username: user.username,
+            created: user.created.toString()
+        })
     } catch (err) {
         console.error('error during signup:', err)
         return res.status(500).send()
     }
+})
+
+app.get('/user', async (req, res) => {
+    const user = await User.findOne({ _id: getObjectId(req.session.userId) })
+    if (!user) {
+        return res.status(401).json({ error: 'Please sign in before proceeding.' })
+    }
+
+    return res.status(200).json({
+        name: user.name,
+        username: user.username,
+        created: user.created.toString()
+    })
 })
 
 app.get('/calendar', authenticate, async (req, res) => {
