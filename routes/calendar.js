@@ -45,7 +45,16 @@ router.post('/', async (req, res) => {
 })
 
 router.put('/', async (req, res) => {
-
+    const { id, title, note, date } = req.body
+    try {
+        await Event.findOneAndUpdate({ _id: getObjectId(id) }, { title, note, date })
+        return res.status(200).send()
+    } catch (err) {
+        console.error('error creating events:', err)
+        return res.status(500).json({
+            error: `Error creating events: ${err}`
+        })
+    }
 })
 
 router.delete('/:id', async (req, res) => {
