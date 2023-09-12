@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 
 const Event = require('../db/model/event')
+const { getObjectId } = require('../db/connect')
 
 router.get('/', async (req, res) => {
     const userId = req.session.userId
@@ -47,8 +48,17 @@ router.put('/', async (req, res) => {
 
 })
 
-router.delete('/', async (req, res) => {
-
+router.delete('/:id', async (req, res) => {
+    const id = req.params.id
+    try {
+        await Event.findOneAndUpdate({ _id: getObjectId(id) }, { active: false })
+        return res.status(200).send()
+    } catch (err) {
+        console.error('error creating events:', err)
+        return res.status(500).json({
+            error: `Error creating events: ${err}`
+        })
+    }
 })
 
 module.exports = router

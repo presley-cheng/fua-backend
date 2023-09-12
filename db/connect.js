@@ -14,8 +14,7 @@ function connectDB(startServer) {
 
 function getObjectId(str) {
     try {
-        const objectId = (new mongoose.Types.ObjectId(str))
-        return objectId
+        return (new mongoose.Types.ObjectId(str))
     } catch (err) {
         console.error(err)
         return null
