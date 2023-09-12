@@ -7,9 +7,10 @@ const PORT = 3000
 
 const { connectDB, getObjectId } = require('./db/connect')
 const bcrypt = require('bcrypt')
+const authenticate = require('./auth')
 const User = require('./db/model/user')
 
-const authenticate = require('./auth')
+const calendarRoutes = require('./routes/calendar')
 
 // middlewares
 app.use(express.json())
@@ -47,7 +48,9 @@ app.post('/login', async (req, res) => {
         })
     } catch (err) {
         console.error('error during login')
-        return res.status(500).send()
+        return res.status(500).json({
+            error: `Error during login: ${err}`
+        })
     }
 })
 
@@ -55,7 +58,9 @@ app.get('/logout', async (req, res) => {
     req.session.destroy(err => {
         if (err) {
             console.error('error during logout:', err)
-            return res.status(500).send()
+            return res.status(500).json({
+                error: `Error during logout: ${err}`
+            })
         }
 
         return res.status(200).send()
@@ -79,13 +84,15 @@ app.post('/signup', async (req, res) => {
 
         req.session.userId = newUser._id.toString()
         return res.status(200).json({
-            name: user.name,
-            username: user.username,
-            created: user.created.toString()
+            name: newUser.name,
+            username: newUser.username,
+            created: newUser.created.toString()
         })
     } catch (err) {
         console.error('error during signup:', err)
-        return res.status(500).send()
+        return res.status(500).json({
+            error: `Error during signup: ${err}`
+        })
     }
 })
 
@@ -102,31 +109,9 @@ app.get('/user', async (req, res) => {
     })
 })
 
-app.get('/calendar', authenticate, async (req, res) => {
-    return res.status(200).json({
-        name: user.name,
-        username: user.username,
-        created: user.created.toString()
-    })
-})
-
-app.get('/notes', authenticate, async (req, res) => {
-    return res.status(200).json({
-        name: user.name,
-        username: user.username,
-        created: user.created.toString()
-    })
-})
-
-app.get('/patients', authenticate, async (req, res) => {
-    return res.status(200).json({
-        name: user.name,
-        username: user.username,
-        created: user.created.toString()
-    })
-})
-
-// TODO: create other dashboard endpoints for component specific data (e.g. calendar, patient info, notes)
+// feature routes (authentication required)
+app.use(authenticate)
+app.use('/calendar', calendarRoutes)
 
 // connect to mongodb then start the server
 connectDB(() => app.listen(PORT, () => console.log(`listening on port ${PORT}`)))
